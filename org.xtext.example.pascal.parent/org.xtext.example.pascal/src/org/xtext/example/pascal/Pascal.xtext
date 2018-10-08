@@ -19,16 +19,154 @@ identifier_list:
 ;
 
 block: //TODO: INLINE DECLARATION PART
+	( label=label_declaration_part ) ?
+	( constant=constant_definition_part ) ? 
+	( type=type_definition_part ) ?
+	( variable=variable_declaration_part ) ? 
+( abstraction=procedure_and_function_declaration_part ) ? 
 	
 	statement=statement_part
 ;
+
+procedure_and_function_declaration_part:
+	
+;
+
+variable_declaration_part:
+	
+;
+
+type_definition_part:
+	
+;
+
+constant_definition_part:
+	"const" ( consts+=constant_definition ";" ) +
+;
+
+constant_definition:
+	name=ID "=" const=constant 
+;
+
+label_declaration_part:
+	
+;
+
+term:
+	factors+=factor ( ( operators+=MULTIPLICATION_OPERATOR | operators+="div" | operators+="mod" | operators+="and" ) factors+=factor ) * 
+;
+
+factor: 
+	variable=variable | number=number | string=STRING | set=set | nil?="nil" | boolean="true" | boolean="false" | function=function_designator | "(" expression=expression ")" | "not" not=factor	
+;
+
+function_designator:
+	
+;
+
 
 statement_part:
 	"begin" sequence=statement_sequence "end"	
 ;
 
 statement_sequence:
+	statements+=statement ( ";" statements+=statement ) *
+;
+
+statement:
+	( label=label ":" ) ? ( simple=simple_statement | structured=structured_statement )
+;
+
+label:
+	number=SIGNED_INTEGER_NUMBER | number=INTEGER_NUMBER
+;
+
+SIGNED_INTEGER_NUMBER:
 	
+;
+
+structured_statement:
+	( assignment=assignment_statement ) ? 
+;
+
+assignment_statement:
+	variable=variable ":=" expression=expression 
+;
+
+expression:
+		expressions+=simple_expression ( ( operators+=RELATIONAL_OPERATOR | operators+="in" | operators+="=" ) expressions+=simple_expression ) ?
+;
+
+simple_expression:
+		( prefixOperator=ADDITION_OPERATOR ) ? terms+=term ( ( operators+=ADDITION_OPERATOR | operators+="or" ) terms+=term | terms+=unsigned_number ) *
+;
+
+unsigned_number:
+	integer=INTEGER_NUMBER
+;
+
+variable:
+	name=ID variable=var_
+;
+
+var_:
+	
+;
+
+simple_statement:
+	
+;
+
+set:
+	brackets+="[" expressions=expression_list ? brackets+="]"	
+;
+
+expression_list:
+	
+;
+
+set_type:
+	"set" "of" type=type	
+;
+
+type:
+	simple=simple_type | structured=structured_type | pointer=pointer_type 
+;
+
+simple_type:
+	ubrange=subrange_type | enumerated=enumerated_type | name=ID
+;
+
+enumerated_type:
+	initialConst=constant ".." finalConst=constant | subrange=NUMERIC_SUBRANGE const=constant
+;
+
+NUMERIC_SUBRANGE:
+	
+;
+
+constant:
+	opterator=ADDITION_OPERATOR ? ( name=ID | number=number ) | string=STRING | boolLiteral="true" | boolLiteral="false" | nil="nil"
+;
+
+number:
+	number=any_number
+;
+
+any_number:
+	
+;
+
+subrange_type:
+	
+;
+
+modif:
+	"begin" "&"ID ":" 
+;
+
+for_statement:
+	"for" assignment=assignment_statement ( "to" | "downto" ) expression=expression "do" statement=statement	
 ;
 
 
@@ -51,3 +189,12 @@ terminal MULTIPLICATION_OPERATOR:
 
 terminal ML_COMMENT : '(*' -> '*)' | '{' -> '}';
 
+terminal INTEGER_NUMBER: 
+	UNSIGNED_DIGIT_SEQUENCE	
+;
+
+terminal UNSIGNED_DIGIT_SEQUENCE:
+	DIGIT+
+;
+
+terminal RESERV_WORDS:  "absolute" |  "and" |"array" | "asm" ;
