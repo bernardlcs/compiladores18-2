@@ -1,6 +1,6 @@
-grammar org.xtext.example.pascal.Pascal with org.eclipse.xtext.common.Terminals
+grammar org.xtext.example.mydsl.MyDsl with org.eclipse.xtext.common.Terminals
 
-generate pascal "http://www.xtext.org/example/pascal/Pascal"
+generate myDsl "http://www.xtext.org/example/mydsl/MyDsl"
 
 pascal:
 	program += program
@@ -19,7 +19,7 @@ identifier_list:
 ;
 
 block: //TODO: INLINE DECLARATION PART
-	( label=label_declaration_part ) ?
+	
 	( constant=constant_definition_part ) ? 
 	( type=type_definition_part ) ?
 	( variable=variable_declaration_part ) ? 
@@ -44,7 +44,7 @@ label:
 ;
 
 simple_statement: //TODO: FOI ADICIONADO O PARAMETRO ID (FUNCTION DESIGNATOR SEM PARAMETRO)
-	( assignment=assignment_statement | function=function_designator | goto=goto_statement | function_noargs=ID ) ?	
+	( assignment=assignment_statement | function=function_designator |  function_noargs=ID ) ?	
 ;
  
 assignment_statement: 
@@ -67,6 +67,7 @@ expression: //TODO: ADICIONADO "=" PQ N TAVA RECONHECENDO EM RELATIONAL_OPERATOR
 	expressions+=simple_expression ( ( operators+=RELATIONAL_OPERATOR | operators+="in" | operators+="=" ) expressions+=simple_expression ) ?
 ; 
 
+// rever esse operador orr, retirar no caso de ver se ele faz a ocoreencia do erro
 simple_expression hidden(WS): 
 	( prefixOperator=ADDITION_OPERATOR ) ? terms+=term ( ( operators+=ADDITION_OPERATOR | operators+="or" ) terms+=term | terms+=unsigned_number ) *
 ;
@@ -104,23 +105,16 @@ function_designator:
 ;
 
 structured_statement: 
-	compound=compound_statement | repetitive=repetitive_statement | conditional=conditional_statement | withStmt=with_statement
+	compound=compound_statement | repetitive=repetitive_statement | conditional=conditional_statement 
 ;
 
 compound_statement:
 	"begin" sequence=statement_sequence "end"
 ;
 
+
 repetitive_statement: 
-	whileStmt=while_statement | repeatStmt=repeat_statement | forStmt=for_statement
-;
-
-while_statement:
-	"while" expression=expression "do" statement=statement	
-;
-
-repeat_statement:
-	"repeat" sequence=statement_sequence "until" expression=expression	
+	forStmt=for_statement
 ;
 
 for_statement:
@@ -128,39 +122,16 @@ for_statement:
 ;
 
 conditional_statement: 
-	ifStmt=if_statement | caseStmt=case_statement
+	ifStmt=if_statement 
 ;
 
 if_statement:
 	"if" expression=expression "then" ifStatement=statement ( "else" elseStatement=statement )	?
 ;
 
-case_statement:
-	"case" expression=expression "of" cases+=case_limb ( ";" cases+=case_limb ) * ( ";" ) ? "end"	
-;
-
-case_limb:
-	cases=case_label_list ":" statement=statement	
-;
-
-case_label_list:
-	constants+=constant ( "," constants+=constant ) *	
-;
 
 constant:
 	opterator=ADDITION_OPERATOR ? ( name=ID | number=number ) | string=STRING | boolLiteral="true" | boolLiteral="false" | nil="nil"
-;
-
-with_statement:
-	"with" variables+=variable ( "," variables+=variable ) * "do" statement=statement	
-;
-
-goto_statement:
-	"goto" label=label	
-;
-
-label_declaration_part:
-	"label" labels+=label ( "," labels+=label ) * ";"
 ;
 
 constant_definition_part:
@@ -200,7 +171,7 @@ structured_type:
 ;
 
 unpacked_structured_type: //TODO: ADICIONADO DYNAMIC_ARRAY_TYPE
-	array=array_type | dynamic=dynamic_array_type | record=record_type | set=set_type | file=file_type
+	array=array_type | dynamic=dynamic_array_type |  set=set_type 
 ;
 
 array_type:
@@ -215,17 +186,6 @@ index_type:
 	type=simple_type	
 ;
 
-record_type:
-	recordKeyword="record" fields=field_list? endKeyword="end"	
-; 
-
-field_list:
-	( fixed=fixed_part ( ";" variants+=variant_part ) ? | variants+=variant_part ) ( ";" ) ? 
-;
-
-fixed_part:
-	sections+=record_section ( ";" sections+=record_section ) *
-;
 
 variable_identifier_list:
 	names+=ID ( "," names+=ID ) *
@@ -235,28 +195,8 @@ variable_section:
 	identifiers=variable_identifier_list ":" type=type	
 ;
 
-record_section:
-	identifiers=identifier_list ":" type=type	
-;
-
-variant_part:
-	"case" tag=tag_field? name=ID "of" variants+=variant ( ";" variants+=variant ) *  	
-;
-
-tag_field:
-	name=ID ":" 
-;
-
-variant:
-	labels=case_label_list ":" "(" fields=field_list? ")"	
-;
-
 set_type:
 	"set" "of" type=type	
-;
-
-file_type:
-	"file" "of" type=type
 ;
 
 pointer_type: //TODO: MUDADO ID PARA TYPE
@@ -271,13 +211,6 @@ procedure_and_function_declaration_part:
 	( ( procedures+=procedure_declaration | functions+=function_declaration  ) ";" ) +
 ;
 
-abstraction_declaration:
-	procedure_declaration | function_declaration	
-;
-
-abstraction_heading:
-	procedure_heading | function_heading 
-;
 
 procedure_declaration returns abstraction_heading:
 	heading=procedure_heading ";" ( block=block | forward?="forward" )
@@ -377,3 +310,4 @@ terminal DIGIT:
 ;
 
 terminal ML_COMMENT : '(*' -> '*)' | '{' -> '}';
+
