@@ -18,26 +18,34 @@ identifier_list:
 	names+=ID ( "," names+=ID ) *	
 ;
 
-block: //TODO: INLINE DECLARATION PART
+block: 
 	( label=label_declaration_part ) ?
 	( constant=constant_definition_part ) ? 
 	( type=type_definition_part ) ?
 	( variable=variable_declaration_part ) ? 
-( abstraction=procedure_and_function_declaration_part ) ? 
-	
 	statement=statement_part
 ;
 
-procedure_and_function_declaration_part:
-	
-;
+
 
 variable_declaration_part:
-	
+	"var" sections+=variable_section ";" ( sections+=variable_section ";" ) *
+;
+
+variable_section:
+	identifiers=variable_identifier_list ":" type=type
+;
+
+variable_identifier_list:
+	names+=ID ( "," names+=ID ) *
 ;
 
 type_definition_part:
-	
+	"type" ( types+=type_definition ";" ) +	
+;
+
+type_definition:
+	name=ID "=" type=type
 ;
 
 constant_definition_part:
@@ -49,7 +57,7 @@ constant_definition:
 ;
 
 label_declaration_part:
-	
+	"label" labels+=label ( "," labels+=label ) * ";"
 ;
 
 term:
@@ -61,7 +69,7 @@ factor:
 ;
 
 function_designator:
-	
+	name=ID "(" expressions=expression_list ? ")"
 ;
 
 
@@ -81,9 +89,6 @@ label:
 	number=SIGNED_INTEGER_NUMBER | number=INTEGER_NUMBER
 ;
 
-SIGNED_INTEGER_NUMBER:
-	
-;
 
 structured_statement:
 	( assignment=assignment_statement ) ? 
@@ -110,11 +115,11 @@ variable:
 ;
 
 var_:
-	
+	( "[" expressions=expression_list "]" array=var_ | accessor?="." name=ID variable=var_ | "^" pointer=var_ ) ?
 ;
 
 simple_statement:
-	
+	( assignment=assignment_statement)
 ;
 
 set:
@@ -122,7 +127,7 @@ set:
 ;
 
 expression_list:
-	
+	expressions+=expression ( "," expressions+=expression ) *
 ;
 
 set_type:
@@ -130,20 +135,21 @@ set_type:
 ;
 
 type:
-	simple=simple_type | structured=structured_type | pointer=pointer_type 
+	simple=simple_type 
 ;
 
 simple_type:
 	ubrange=subrange_type | enumerated=enumerated_type | name=ID
 ;
 
+subrange_type:
+	initialConst=constant ".." finalConst=constant | subrange=NUMERIC_SUBRANGE const=constant
+;
+
 enumerated_type:
 	initialConst=constant ".." finalConst=constant | subrange=NUMERIC_SUBRANGE const=constant
 ;
 
-NUMERIC_SUBRANGE:
-	
-;
 
 constant:
 	opterator=ADDITION_OPERATOR ? ( name=ID | number=number ) | string=STRING | boolLiteral="true" | boolLiteral="false" | nil="nil"
@@ -154,12 +160,14 @@ number:
 ;
 
 any_number:
-	
+	unsigned_number | signed_number	
 ;
 
-subrange_type:
-	
+signed_number:
+	integer=SIGNED_INTEGER_NUMBER
 ;
+
+
 
 modif:
 	"begin" "&"ID ":" 
@@ -197,4 +205,10 @@ terminal UNSIGNED_DIGIT_SEQUENCE:
 	DIGIT+
 ;
 
-terminal RESERV_WORDS:  "absolute" |  "and" |"array" | "asm" ;
+terminal NUMERIC_SUBRANGE:
+	( INTEGER_NUMBER |  SIGNED_INTEGER_NUMBER  ) ".."	
+;
+terminal SIGNED_INTEGER_NUMBER:
+	ADDITION_OPERATOR INTEGER_NUMBER	
+;
+

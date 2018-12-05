@@ -2,8 +2,213 @@ grammar org.xtext.example.pascal.Pascal with org.eclipse.xtext.common.Terminals
 
 generate pascal "http://www.xtext.org/example/pascal/Pascal"
 
-Model:
-	greetings+=Greeting*;
-	
-Greeting:
-	'Hello' name=ID '!';
+pascal:
+	program += program
+;
+
+program:
+	heading=program_heading_block block=block "." 
+;
+
+program_heading_block: 
+	"program" name=ID ( "(" identifiers=identifier_list ")" ) ? ";"	
+; 
+
+identifier_list:
+	names+=ID ( "," names+=ID ) *	
+;
+
+block: 
+	( label=label_declaration_part ) ?
+	( constant=constant_definition_part ) ? 
+	( type=type_definition_part ) ?
+	( variable=variable_declaration_part ) ? 
+	statement=statement_part
+;
+
+
+
+variable_declaration_part:
+	"var" sections+=variable_section ";" ( sections+=variable_section ";" ) *
+;
+
+variable_section:
+	identifiers=variable_identifier_list ":" type=type
+;
+
+variable_identifier_list:
+	names+=ID ( "," names+=ID ) *
+;
+
+type_definition_part:
+	"type" ( types+=type_definition ";" ) +	
+;
+
+type_definition:
+	name=ID "=" type=type
+;
+
+constant_definition_part:
+	"const" ( consts+=constant_definition ";" ) +
+;
+
+constant_definition:
+	name=ID "=" const=constant 
+;
+
+label_declaration_part:
+	"label" labels+=label ( "," labels+=label ) * ";"
+;
+
+term:
+	factors+=factor ( ( operators+=MULTIPLICATION_OPERATOR | operators+="div" | operators+="mod" | operators+="and" ) factors+=factor ) * 
+;
+
+factor: 
+	variable=variable | number=number | string=STRING | set=set | nil?="nil" | boolean="true" | boolean="false" | function=function_designator | "(" expression=expression ")" | "not" not=factor	
+;
+
+function_designator:
+	name=ID "(" expressions=expression_list ? ")"
+;
+
+
+statement_part:
+	"begin" sequence=statement_sequence "end"	
+;
+
+statement_sequence:
+	statements+=statement ( ";" statements+=statement ) *
+;
+
+statement:
+	( label=label ":" ) ? ( simple=simple_statement | structured=structured_statement )
+;
+
+label:
+	number=SIGNED_INTEGER_NUMBER | number=INTEGER_NUMBER
+;
+
+
+structured_statement:
+	( assignment=assignment_statement ) ? 
+;
+
+assignment_statement:
+	variable=variable ":=" expression=expression 
+;
+
+expression:
+		expressions+=simple_expression ( ( operators+=RELATIONAL_OPERATOR | operators+="in" | operators+="=" ) expressions+=simple_expression ) ?
+;
+
+simple_expression:
+		( prefixOperator=ADDITION_OPERATOR ) ? terms+=term ( ( operators+=ADDITION_OPERATOR | operators+="or" ) terms+=term | terms+=unsigned_number ) *
+;
+
+unsigned_number:
+	integer=INTEGER_NUMBER
+;
+
+variable:
+	name=ID variable=var_
+;
+
+var_:
+	( "[" expressions=expression_list "]" array=var_ | accessor?="." name=ID variable=var_ | "^" pointer=var_ ) ?
+;
+
+simple_statement:
+	( assignment=assignment_statement)
+;
+
+set:
+	brackets+="[" expressions=expression_list ? brackets+="]"	
+;
+
+expression_list:
+	expressions+=expression ( "," expressions+=expression ) *
+;
+
+set_type:
+	"set" "of" type=type	
+;
+
+type:
+	simple=simple_type 
+;
+
+simple_type:
+	ubrange=subrange_type | enumerated=enumerated_type | name=ID
+;
+
+subrange_type:
+	initialConst=constant ".." finalConst=constant | subrange=NUMERIC_SUBRANGE const=constant
+;
+
+enumerated_type:
+	initialConst=constant ".." finalConst=constant | subrange=NUMERIC_SUBRANGE const=constant
+;
+
+
+constant:
+	opterator=ADDITION_OPERATOR ? ( name=ID | number=number ) | string=STRING | boolLiteral="true" | boolLiteral="false" | nil="nil"
+;
+
+number:
+	number=any_number
+;
+
+any_number:
+	unsigned_number | signed_number	
+;
+
+signed_number:
+	integer=SIGNED_INTEGER_NUMBER
+;
+
+
+
+modif:
+	"begin" "&"ID ":" 
+;
+
+for_statement:
+	"for" assignment=assignment_statement ( "to" | "downto" ) expression=expression "do" statement=statement	
+;
+
+
+terminal DIGIT:
+	"0".."9"
+;
+
+terminal RELATIONAL_OPERATOR:
+	"=" | "<>" | "<" | "<=" | ">" | ">=" 
+;
+
+terminal ADDITION_OPERATOR:
+	"+" | "-" 	
+; 
+
+terminal MULTIPLICATION_OPERATOR:
+	"*" | "/" 
+;
+
+
+terminal ML_COMMENT : '(*' -> '*)' | '{' -> '}';
+
+terminal INTEGER_NUMBER: 
+	UNSIGNED_DIGIT_SEQUENCE	
+;
+
+terminal UNSIGNED_DIGIT_SEQUENCE:
+	DIGIT+
+;
+
+terminal NUMERIC_SUBRANGE:
+	( INTEGER_NUMBER |  SIGNED_INTEGER_NUMBER  ) ".."	
+;
+terminal SIGNED_INTEGER_NUMBER:
+	ADDITION_OPERATOR INTEGER_NUMBER	
+;
+
