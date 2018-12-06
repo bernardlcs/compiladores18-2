@@ -213,8 +213,9 @@ class PascalValidator extends AbstractPascalValidator {
 			if (varFound !== null) {
 				type = varFound.varType;
 			} 
+			//alterador para string
 		} else if (const.string !== null) {
-			type = new ComposedType(new Type("String"), ComposedTypeKind.ARRAY);
+			type = new Type("String");
 		} else if (const.boolLiteral !== null) {
 			type = new Type("boolean");
 		} else if (const.nil !== null) {
@@ -253,8 +254,10 @@ class PascalValidator extends AbstractPascalValidator {
 			if (number.integer !== null) {
 				type = new Type("integer");
 			} 
+			// alterador para string e adicionado var string
 		} else if (f.string !== null) {
-			type = new ComposedType(new Type("String"), ComposedTypeKind.ARRAY);
+			//var string = f.string.toString;
+			type = new Type("String");
 		} else if (f.set !== null) {
 			type = getType(b, f.set.expressions, true); 
 		} else if (f.nil) {

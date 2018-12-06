@@ -366,8 +366,7 @@ public class PascalValidator extends AbstractPascalValidator {
       boolean _tripleNotEquals_1 = (_string != null);
       if (_tripleNotEquals_1) {
         Type _type = new Type("String");
-        ComposedType _composedType = new ComposedType(_type, ComposedTypeKind.ARRAY);
-        type = _composedType;
+        type = _type;
       } else {
         String _boolLiteral = const_.getBoolLiteral();
         boolean _tripleNotEquals_2 = (_boolLiteral != null);
@@ -443,8 +442,7 @@ public class PascalValidator extends AbstractPascalValidator {
         boolean _tripleNotEquals_3 = (_string != null);
         if (_tripleNotEquals_3) {
           Type _type_1 = new Type("String");
-          ComposedType _composedType = new ComposedType(_type_1, ComposedTypeKind.ARRAY);
-          type = _composedType;
+          type = _type_1;
         } else {
           set _set = f.getSet();
           boolean _tripleNotEquals_4 = (_set != null);
